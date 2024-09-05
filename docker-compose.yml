@@ -30,14 +30,14 @@ services:
     ports:
       - "5432:5432"
 
-#  api:
-#    build: ./api
-#    ports:
-#      - "8080:8080"
-#    depends_on:
-#      - postgres
+  api:
+    build: ./api
+    ports:
+      - "8080:8080"
+    depends_on:
+      - postgres
 
-  #collector:
-  #  build: ./collector
-  #  depends_on:
-  #    - kafka
+  collector:
+    build: ./collector
+    depends_on:
+      - kafka
