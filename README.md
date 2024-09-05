@@ -13,6 +13,7 @@ I would recommend looking at collector, then etl, then api.
 
 ## Overall Structure
 I went with a monorepo structure here, which each service isolated in its own folder.
+diagram.excalidraw provides a visual of the overall system.
 
 ## Overarching Issues
 - There are opportunities to move some structs and funcs to common libraries and packages rather than
