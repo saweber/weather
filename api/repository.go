@@ -21,16 +21,18 @@ func (r *Repository) Init() {
 }
 
 type StormReport struct {
-	Id          string `json:"id"`
-	ReportDate  string `json:"reportDate,omitempty" bun:"report_date"`
-	StormType   string `json:"stormType,omitempty" bun:"storm_type"`
-	Latitude    string `json:"latitude,omitempty"`
-	Longitude   string `json:"longitude,omitempty"`
-	Location    string `json:"location,omitempty"`
-	County      string `json:"county,omitempty"`
-	State       string `json:"state,omitempty" bun:"state_code"`
-	Comments    string `json:"comments,omitempty"`
-	Description string `json:"description,omitempty"`
+	Id         string `json:"id"`
+	ReportDate string `json:"reportDate,omitempty" bun:"report_date"`
+	StormType  string `json:"stormType,omitempty" bun:"storm_type"`
+	Latitude   string `json:"latitude,omitempty"`
+	Longitude  string `json:"longitude,omitempty"`
+	Location   string `json:"location,omitempty"`
+	County     string `json:"county,omitempty"`
+	State      string `json:"state,omitempty"`
+	Comments   string `json:"comments,omitempty"`
+	Speed      int    `json:"speed,omitempty"`
+	Size       int    `json:"size,omitempty"`
+	FScale     int    `json:"fScale,omitempty" bun:"f_scale"`
 }
 
 type GetStormReportsOptions struct {
@@ -46,10 +48,10 @@ func (r *Repository) GetStormReports(opts GetStormReportsOptions) *[]StormReport
 		query = query.Where("location LIKE ?", "%"+opts.Location+"%")
 	}
 	if opts.ReportDateStart != nil {
-		query = query.Where("report_date >= ?", opts.ReportDateStart)
+		query = query.Where("report_date >= ?::timestamp", opts.ReportDateStart)
 	}
 	if opts.ReportDateEnd != nil {
-		query = query.Where("report_date <= ?", opts.ReportDateEnd)
+		query = query.Where("report_date < ?::timestamp", opts.ReportDateEnd)
 	}
 
 	reports := []StormReport{}

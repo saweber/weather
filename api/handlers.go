@@ -11,7 +11,7 @@ func parseTimeParam(param string) (*time.Time, error) {
 	if param == "" {
 		return nil, nil
 	}
-	paramTime, err := time.Parse(time.DateOnly, param)
+	paramTime, err := time.Parse(time.RFC3339, param)
 	if err != nil {
 		return nil, err
 	}
