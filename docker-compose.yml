@@ -41,3 +41,9 @@ services:
     build: ./collector
     depends_on:
       - kafka
+
+  etl:
+    build: ./etl
+    depends_on:
+      - kafka
+      - postgres

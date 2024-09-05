@@ -21,18 +21,19 @@ func (r *Repository) Init() {
 }
 
 type StormReport struct {
-	Id         string `json:"id"`
-	ReportDate string `json:"reportDate,omitempty" bun:"report_date"`
-	StormType  string `json:"stormType,omitempty" bun:"storm_type"`
-	Latitude   string `json:"latitude,omitempty"`
-	Longitude  string `json:"longitude,omitempty"`
-	Location   string `json:"location,omitempty"`
-	County     string `json:"county,omitempty"`
-	State      string `json:"state,omitempty"`
-	Comments   string `json:"comments,omitempty"`
-	Speed      int    `json:"speed,omitempty"`
-	Size       int    `json:"size,omitempty"`
-	FScale     int    `json:"fScale,omitempty" bun:"f_scale"`
+	bun.BaseModel `bun:"table:storm_reports,alias:sr"`
+	ReportDate    string    `json:"reportDate,omitempty" bun:"report_date"`
+	StormType     string    `json:"stormType,omitempty" bun:"storm_type"`
+	Latitude      string    `json:"latitude,omitempty"`
+	Longitude     string    `json:"longitude,omitempty"`
+	Location      string    `json:"location,omitempty"`
+	County        string    `json:"county,omitempty"`
+	State         string    `json:"state,omitempty"`
+	Comments      string    `json:"comments,omitempty"`
+	Speed         int       `json:"speed,omitempty"`
+	Size          int       `json:"size,omitempty"`
+	FScale        int       `json:"fScale,omitempty" bun:"f_scale"`
+	Time          time.Time `json:"time,omitempty" bun:"time"`
 }
 
 type GetStormReportsOptions struct {
@@ -48,10 +49,10 @@ func (r *Repository) GetStormReports(opts GetStormReportsOptions) *[]StormReport
 		query = query.Where("location LIKE ?", "%"+opts.Location+"%")
 	}
 	if opts.ReportDateStart != nil {
-		query = query.Where("report_date >= ?::timestamp", opts.ReportDateStart)
+		query = query.Where("time >= ?::timestamp", opts.ReportDateStart.Format(time.RFC3339))
 	}
 	if opts.ReportDateEnd != nil {
-		query = query.Where("report_date < ?::timestamp", opts.ReportDateEnd)
+		query = query.Where("time < ?::timestamp", opts.ReportDateEnd.Format(time.RFC3339))
 	}
 
 	reports := []StormReport{}

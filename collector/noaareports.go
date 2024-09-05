@@ -13,6 +13,14 @@ func getNOAAStormReports() {
 	yesterday := time.Now().AddDate(0, 0, -1)
 	baseURL := "https://www.spc.noaa.gov/climo/reports/"
 
+	// create kafka producer
+	producer, err := sarama.NewSyncProducer([]string{"localhost:9092"}, nil)
+	if err != nil {
+		fmt.Printf("error creating Kafka producer: %v", err)
+		return
+	}
+	defer producer.Close()
+
 	// get tornado report from noaa
 	tornadoURL := baseURL + yesterday.Format("060102") + "_rpts_filtered_torn.csv"
 	tornadoesRaw, err := retrieveAndParseCSV(tornadoURL)
@@ -22,7 +30,7 @@ func getNOAAStormReports() {
 		// parse each record and push into kafka topic
 		for _, record := range tornadoesRaw[1:] {
 			tornado := parseTornadoReport(record, yesterday)
-			err = putStormReportInKafka(tornado)
+			err = putStormReportInKafka(producer, tornado)
 			if err != nil {
 				fmt.Printf("error putting tornado report in kafka: %s", err)
 			}
@@ -38,7 +46,7 @@ func getNOAAStormReports() {
 		// parse each record and push into kafka topic
 		for _, record := range hailRaw[1:] {
 			hail := parseHailReport(record, yesterday)
-			err = putStormReportInKafka(hail)
+			err = putStormReportInKafka(producer, hail)
 			if err != nil {
 				fmt.Printf("error putting tornado report in kafka: %s", err)
 			}
@@ -54,7 +62,7 @@ func getNOAAStormReports() {
 		// parse each record and push into kafka topic
 		for _, record := range windRaw[1:] {
 			wind := parseWindReport(record, yesterday)
-			err = putStormReportInKafka(wind)
+			err = putStormReportInKafka(producer, wind)
 			if err != nil {
 				fmt.Printf("error putting tornado report in kafka: %s", err)
 			}
@@ -65,19 +73,19 @@ func getNOAAStormReports() {
 // StormReport is a super set of all the fields from different reports with
 // additional data to track the type of storm and original report
 type StormReport struct {
-	Source     string
-	ReportDate string
-	StormType  string
-	Time       string
-	Size       string
-	Speed      string
-	FScale     string
-	Location   string
-	County     string
-	State      string
-	Latitude   string
-	Longitude  string
-	Comments   string
+	Source     string `json:"source,omitempty"`
+	ReportDate string `json:"reportDate,omitempty"`
+	StormType  string `json:"stormType,omitempty"`
+	Time       string `json:"time,omitempty"`
+	Size       string `json:"size,omitempty"`
+	Speed      string `json:"speed,omitempty"`
+	FScale     string `json:"FScale,omitempty"`
+	Location   string `json:"location,omitempty"`
+	County     string `json:"county,omitempty"`
+	State      string `json:"state,omitempty"`
+	Latitude   string `json:"latitude,omitempty"`
+	Longitude  string `json:"longitude,omitempty"`
+	Comments   string `json:"comments,omitempty"`
 }
 
 func parseTornadoReport(record []string, reportDate time.Time) *StormReport {
@@ -128,26 +136,14 @@ func parseWindReport(record []string, reportDate time.Time) *StormReport {
 	return report
 }
 
-const (
-	broker = "127.0.0.1:9092"
-	topic  = "raw-weather-reports"
-)
-
-func putStormReportInKafka(report *StormReport) error {
-	producer, err := sarama.NewSyncProducer([]string{broker}, nil)
-	if err != nil {
-		return fmt.Errorf("error creating Kafka producer: %v", err)
-	}
-	defer producer.Close()
-
-	// Convert StormReport to JSON or other desired format
+func putStormReportInKafka(producer sarama.SyncProducer, report *StormReport) error {
 	reportBytes, err := json.Marshal(report)
 	if err != nil {
 		return fmt.Errorf("error marshaling report to JSON: %v", err)
 	}
 
 	message := &sarama.ProducerMessage{
-		Topic: topic,
+		Topic: "raw-weather-reports",
 		Value: sarama.ByteEncoder(reportBytes),
 	}
 

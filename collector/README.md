@@ -7,8 +7,8 @@ and pushing each individual storm report into the raw-weather-reports kafka topi
 - Keep CSV parsing standardized so it can be reused
 - Use standard lib for CSV parsing
 - Normalize the tornado, hail, wind reports to have the message data be consistent
-- No particular reason behind Samara, other than it seems to be the most popular based
-on internet search and GitHub stars
+- No particular reason behind sarama, other than it seems to be the most popular based
+on internet search and GitHub stars and does not require CGO.
 
 ## Shortcuts / Next Steps
 - Retry logic, improved error handling, and metrics/alerting for edge cases, 
